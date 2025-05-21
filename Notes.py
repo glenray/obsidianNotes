@@ -9,8 +9,12 @@ class Notes():
 		self.recursive = recursive
 		self.paths = paths
 		self.notes = []
-		self.propTypes = Note.getVaultTypes(self.paths)
+		self.propTypes = Note.getPropTypes(self.paths)
 		self.add_notes(self.paths, self.recursive)
+
+
+	def __len__(self):
+		return len(self.notes)
 
 
 	def add_notes(self, paths, recursive = True):
@@ -23,7 +27,10 @@ class Notes():
 					for f_name in files:
 						pth_f = Path(root) / f_name
 						if Note._is_md_file(pth_f):
-							self.notes.append(Note(path=pth_f))
+							n = Note(pth_f, self.propTypes)
+							# do not allow duplicate notes
+							if n not in self.notes:
+								self.notes.append(n)
 					if not recursive:
 						break
 			elif Note._is_md_file(path):
@@ -31,14 +38,22 @@ class Notes():
 
 
 class Note():
-	def __init__(self, path, vaultTypes=None):
+	def __init__(self, path, propTypes=None):
 		self.path = path
-		self.post = frontmatter.load(self.path)
-		self.vaultTypes = Note.getVaultTypes(self.path)
-		
+		self.Notes = Notes
+		try:
+			self.post = frontmatter.load(self.path)
+		except:
+			print(f"There was a problem parsing: {self.path.name}.\nSkipping: {self.path}")
+		self.propTypes = Note.getPropTypes(self.path) if propTypes == None else propTypes
+
+
+	def __eq__(self, other):
+		return self.path == other.path
+
 
 	@staticmethod
-	def getVaultTypes(path):
+	def getPropTypes(path):
 		typesFile = '.obsidian/types.json'
 		attempt = None
 		root = Path(path.root)
