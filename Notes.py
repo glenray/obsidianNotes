@@ -40,7 +40,6 @@ class Notes():
 class Note():
 	def __init__(self, path, propTypes=None):
 		self.path = path
-		self.Notes = Notes
 		try:
 			self.post = frontmatter.load(self.path)
 		except:
