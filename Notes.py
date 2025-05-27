@@ -5,9 +5,10 @@ import frontmatter
 
 
 class Notes():
-	def __init__(self, paths, recursive=True):
+	def __init__(self, paths, excludePaths=None, recursive=True):
 		self.recursive = recursive
-		self.paths = paths
+		self.paths = self._processPaths(paths)
+		self.excludePaths = self._processPaths(excludePaths)
 		self.notes = []
 		self.propTypes = Note.getPropTypes(self.paths)
 		self.add_notes(self.paths, self.recursive)
@@ -15,6 +16,33 @@ class Notes():
 
 	def __len__(self):
 		return len(self.notes)
+
+
+	def _processPaths(self, paths):
+		if isinstance(paths, list) or paths == None:
+			return paths
+		elif isinstance(paths, Path):
+			return [paths]
+		else:
+			raise ValueError(f"Parameter must be a Path object, a list of Path objects, or None. {paths} ({type(paths)}) given.")
+
+
+	def _isExcluded(self, path: str) -> bool:
+		"""Test whether path should be skipped as excluded
+
+		Args:
+			path:
+				string of path to test for exclusion
+		Returns bool:
+			True: the path should be excluded
+
+		"""
+		if self.excludePaths == None:
+			return False
+		for excludedPath in self.excludePaths:
+			if path.startswith(str(excludedPath)):
+				return True
+		return False
 
 
 	def add_notes(self, paths, recursive = True):
@@ -26,7 +54,7 @@ class Notes():
 				for root, _, files in os.walk(path):
 					for f_name in files:
 						pth_f = Path(root) / f_name
-						if Note._is_md_file(pth_f):
+						if Note._is_md_file(pth_f) and not self._isExcluded(root):
 							n = Note(pth_f, self.propTypes)
 							# do not allow duplicate notes
 							if n not in self.notes:
@@ -53,10 +81,12 @@ class Note():
 
 	@staticmethod
 	def getPropTypes(path):
+		if isinstance(path, Path):
+			path = [path]
 		typesFile = '.obsidian/types.json'
 		attempt = None
-		root = Path(path.root)
-		cwd = path.parent if path.is_file() else path
+		root = Path(path[0].root)
+		cwd = path[0].parent if path[0].is_file() else path[0]
 		while cwd != root:
 			attempt = cwd/typesFile
 			if attempt.exists():
@@ -101,6 +131,20 @@ class Note():
 
 
 	def add(self, k, v=None, overwrite=False):
+		''' Add metadata key or value to note
+
+		Args:
+			k string
+				a new or existing property key
+			v string, [], None. 
+				if string, the value to assign to a key
+				if [], initialize value with an empty list
+				if None, create a new property without assigning a value.
+			overwrite bool
+				if True, overwrite the existing value
+				if False, append the new value to the existing value,
+				creating a list if necessary
+		'''
 		pm = self.post.metadata
 		# adding a new property
 		if not self.has_meta(k):
@@ -116,7 +160,13 @@ class Note():
 						pm[k].append(v)
 			# modify scalar values
 			else:
-				pm[k] = v
+				# no duplicate values allowed.
+				if pm[k] != v:
+					if overwrite:
+						pm[k] = v
+					else:
+						pm[k] = [pm[k]]
+						pm[k].append(v)
 
 
 	def removeKey(self, k):
@@ -132,6 +182,7 @@ class Note():
 		If the key value is a list, the value will be removed from that list. All other property types will be set to None
 		'''
 		pm = self.post.metadata
+		# breakpoint()
 		if self.has_meta(k):
 			if type(pm[k]) is list:
 				# remove value from list of

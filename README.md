@@ -1,0 +1,1 @@
+This package was inspired by [GitHub - selimrbd/py-obsidianmd: Python interface to your Obsidian notes](https://github.com/selimrbd/py-obsidianmd). This project is less ambitious than py-obsidianmd to the extent that it does not try to handle inline metadata, useful for dataview queries.
