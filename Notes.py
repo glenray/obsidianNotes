@@ -114,12 +114,14 @@ class Note():
 
 	def meta_to_string(self):
 		''' Return meta data as a string'''
-		boundary = "---\n"
+		if len(self.post.metadata) == 0:
+			return False
+		boundry = "---"
 		content = self.to_string()
-		start_index = content.find(boundary) + len(boundary)
-		end_index = content.find(boundary, start_index)
-		meta_result = content[start_index:end_index]
-		return meta_result
+		start_index = content.find(boundry+"\n") + len(boundry)+1
+		end_index = content.find("\n"+boundry, start_index)
+		meta_text = content[start_index:end_index]
+		return meta_text
 
 
 	def write(self, fileName=None):
