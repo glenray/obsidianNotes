@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import re
 import frontmatter
 
 
@@ -109,6 +110,16 @@ class Note():
 	def to_string(self):
 		content = frontmatter.dumps(self.post, encoding='utf-8', sort_keys=False, width=0, allow_unicode=True)
 		return content
+
+
+	def meta_to_string(self):
+		''' Return meta data as a string'''
+		boundary = "---\n"
+		content = self.to_string()
+		start_index = content.find(boundary) + len(boundary)
+		end_index = content.find(boundary, start_index)
+		meta_result = content[start_index:end_index]
+		return meta_result
 
 
 	def write(self, fileName=None):
