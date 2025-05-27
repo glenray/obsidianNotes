@@ -131,7 +131,7 @@ class Note():
 
 
 	def add(self, k, v=None, overwrite=False):
-		''' Add metadata key or value to note
+		''' Add metadata 
 
 		Args:
 			k string
@@ -165,28 +165,39 @@ class Note():
 					if overwrite:
 						pm[k] = v
 					else:
-						pm[k] = [pm[k]]
-						pm[k].append(v)
+						if pm[k]:
+							pm[k] = [pm[k]]
+							pm[k].append(v)
+						else:
+							pm[k] = v
 
 
-	def removeKey(self, k):
-		'''
-		Remove a property completely
-		'''
-		if self.has_meta(k):
-			del self.post.metadata[k]
+	def remove(self, k, v=None, remove_key=False):
+		''' Remove metadata
+		Args:
+			k string
+				an existing metadata key. 
+			v string | None
+				the value to remove. If None, the enire key will be
+				removed.
+			remove_key bool
+				if True, the entire key will be removed.
 
-
-	def removeValue(self, k, v=None):
-		''' Remove a key's value
 		If the key value is a list, the value will be removed from that list. All other property types will be set to None
+		Empty lists will be set to None.
 		'''
 		pm = self.post.metadata
-		# breakpoint()
-		if self.has_meta(k):
-			if type(pm[k]) is list:
-				# remove value from list of
-				if v in pm[k]:
-					pm[k].remove(v)
-			else:
-				pm[k] = None
+		# remove key completely
+		if remove_key:
+			if self.has_meta(k):
+				del self.post.metadata[k]
+		else:
+			if self.has_meta(k):
+				if type(pm[k]) is list:
+					# remove value from list of
+					if self.has_meta(k, v) and v != None:
+						pm[k].remove(v)
+						if len(pm[k]) == 0:
+							pm[k] = None
+				else:
+					pm[k] = None
