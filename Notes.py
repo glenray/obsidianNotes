@@ -67,12 +67,28 @@ class Notes():
 
 
 class Note():
+	''' A markdown note object
+		Args:
+			path: str | Path
+				path to markdown file
+			propTypes: dict | None
+				dict: property types from obsidian types.json file
+				None: indicates the note needs to generate its own
+				propTypes dict, i.e. the note was not created by Notes
+				class. The Notes class would have provided the propTypes
+				dict.
+	'''
 	def __init__(self, path, propTypes=None):
 		self.path = path
+		if type(path) == str:
+			self.path = Path(path)
+		assert self._is_md_file(self.path), f"Path {self.path} \ndoes not exist or is not a markdown file."
+		# load the file
 		try:
 			self.post = frontmatter.load(self.path)
 		except:
 			print(f"There was a problem parsing: {self.path.name}.\nSkipping: {self.path}")
+
 		self.propTypes = Note.getPropTypes(self.path) if propTypes == None else propTypes
 
 
