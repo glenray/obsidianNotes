@@ -117,19 +117,38 @@ class Note():
 			return None
 
 	@staticmethod
-	def _is_md_file(path: Path):
+	def _is_md_file(path: Path | str) -> bool:
+		''' is the file at path a markdown file?
+
+			Args:
+				path: str | Path
+
+			Return:
+				bool: True if the file is an markdown file
+
+		'''
+		if isinstance(path, str):
+			path = Path(path)
 		exist = path.exists()
 		is_md = path.suffix == ".md"
 		return exist and is_md
 
 
-	def to_string(self):
+	def to_string(self) -> str:
+		''' return the metadata and content as a string
+
+			return: str
+		'''
 		content = frontmatter.dumps(self.post, encoding='utf-8', sort_keys=False, width=0, allow_unicode=True)
 		return content
 
 
-	def meta_to_string(self):
-		''' Return meta data as a string'''
+	def meta_to_string(self) -> str:
+		''' Return meta data as a string
+
+				return: str
+					the metadata as a string
+		'''
 		if len(self.post.metadata) == 0:
 			return False
 		boundry = "---"
@@ -140,12 +159,32 @@ class Note():
 		return meta_text
 
 
-	def write(self, fileName=None):
+	def write(self, fileName: str | Path = None):
+		'''write note to a file
+
+			Args:
+				filename: str | Path
+					the file path to dump the note. None overwrites the originating
+					file.
+		'''
+		# convert string to path
+		if isinstance(fileName, str):
+			fileName = Path(fileName)
 		fn = self.path if fileName==None else fileName
 		frontmatter.dump(self.post, fn, encoding='utf-8', sort_keys=False, allow_unicode=True)
 
 
-	def has_meta(self, key, value=None):
+	def has_meta(self, key: str, value: None | str = None):
+		''' Return whether metadata key or key:value pair exists
+			Args:
+				key: str
+					The metadata property key
+				value: str | None
+					The metadata value to match or None to match only the key
+			Return:
+				bool
+
+		'''
 		pm = self.post.metadata
 		# does the property key exist
 		if value == None:
@@ -156,7 +195,6 @@ class Note():
 			return value in pm[key]
 		else:
 			return pm[key] == value
-
 
 
 	def add(self, k, v=None, overwrite=False):
