@@ -149,7 +149,8 @@ class Note():
 				return: str
 					the metadata as a string
 		'''
-		if len(self.post.metadata) == 0:
+		# if there is no metadata, return false.
+		if not self.post.metadata:
 			return False
 		boundry = "---"
 		content = self.to_string()
@@ -171,7 +172,14 @@ class Note():
 		if isinstance(fileName, str):
 			fileName = Path(fileName)
 		fn = self.path if fileName==None else fileName
-		frontmatter.dump(self.post, fn, encoding='utf-8', sort_keys=False, allow_unicode=True)
+		# if metadata exists
+		if self.post.metadata:
+			frontmatter.dump(self.post, fn, encoding='utf-8', sort_keys=False, allow_unicode=True)
+		# if no metadata. Prevents frontmatter from dumping an empty dict as metadata,
+		# breaking Obsidian's ability to insert properties.
+		else:
+			with open(fn, 'w', encoding='utf-8') as f:
+				f.write("\n"+self.post.content)
 
 
 	def has_meta(self, key: str, value: None | str = None):
