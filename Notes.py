@@ -160,11 +160,11 @@ class Note():
 		return meta_text
 
 
-	def write(self, fileName: str | Path = None):
+	def write(self, fileName: str | Path | None = None):
 		'''write note to a file
 
 			Args:
-				filename: str | Path
+				filename: str | Path | None
 					the file path to dump the note. None overwrites the originating
 					file.
 		'''
@@ -175,8 +175,11 @@ class Note():
 		# if metadata exists
 		if self.post.metadata:
 			frontmatter.dump(self.post, fn, encoding='utf-8', sort_keys=False, allow_unicode=True)
-		# if no metadata. Prevents frontmatter from dumping an empty dict as metadata,
-		# breaking Obsidian's ability to insert properties.
+		# If a document has no metadata, frontmatter.dump writes an empty 
+		# metadata dict to the top of the document.
+		# This prevents Obsidian from recognizing '---' typed by the user 
+		# to trigger insertion of new properties. 
+		# So, if the metadata is empty, write only the content without the empty dict.
 		else:
 			with open(fn, 'w', encoding='utf-8') as f:
 				f.write("\n"+self.post.content)
