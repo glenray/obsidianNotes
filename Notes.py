@@ -279,3 +279,31 @@ class Note():
 							pm[k] = None
 				else:
 					pm[k] = None
+
+
+
+	def _sortDict(self, key, orderList, atTop):
+		''' Helper function for reorderFrontmatter method'''
+		put = len(orderList)+1 if atTop else -1
+		if key in orderList:
+			return orderList.index(key)
+		else:
+			return put
+
+
+	def reorderFrontmatter(self, orderList, atTop = True):
+		''' Reorder frontmatter properties
+
+			Args:
+				orderList: list
+					a list of keys in the order they should appear in the frontmatter. 
+					If orderList contains keys not in the fmDict, they will be skipped. 
+					If fmDict contains keys not in orderList, they will be placed either at the top or the bottom, depending on the value of "placement" atTop
+				atTop: bool
+					Where will the orderList keys appear relative to the properties not in orderList? If True (the default), the orderList properties are placed at the top of the dict. Otherwise, those properties will appear at the bottom. Properties not in orderList will retain	the order, relative to each other, they had before reordering.
+
+			Return: None
+		'''
+		assert isinstance(orderList, list), f"Parameter orderList must be a list. {type(orderList)} given."
+		self.post.metadata = dict(sorted(self.post.metadata.items(), 
+			key = lambda x: self._sortDict(x[0], orderList, atTop)))
