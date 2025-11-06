@@ -7,9 +7,14 @@ import frontmatter
 
 class Notes():
 	''' A collection of Note objects
-		paths: a path or list of paths where md files should be loaded
-		excludePaths: a path or list of folders that should be excluded
-		recursive: whether all sub folders of a path whould be processed.
+
+		Args:
+			paths: Path | str | list
+				Directory or list of directories where md should be loaded
+			excludePaths: Path | str | list
+				Directory or list of directories to exclude loading md files
+			recursive: bool
+				If True (default) all sub folders of a path whould be processed.
 	'''
 	def __init__(self, paths, excludePaths=None, recursive=True):
 		self.recursive = recursive
@@ -52,6 +57,16 @@ class Notes():
 
 
 	def add_notes(self, paths, recursive = True):
+		''' Add a folder of notes to the Notes object
+
+		Append notes in a path or list of paths to the Notes object.
+
+		Args:
+			paths: Path | str | list
+				Directory or list of directories where md should be loaded
+			recursive: bool
+				If True (default) all sub folders of a path whould be processed.
+		'''
 		if isinstance(paths, Path):
 			paths = [paths]
 		for path in paths:
@@ -73,6 +88,7 @@ class Notes():
 
 class Note():
 	''' A markdown note object
+
 		Args:
 			path: str | Path
 				path to markdown file
@@ -144,7 +160,7 @@ class Note():
 
 
 	def to_string(self) -> str:
-		''' return the metadata and content as a string
+		''' Return the note metadata and content as a string
 
 			return: str
 		'''
@@ -155,8 +171,10 @@ class Note():
 	def meta_to_string(self) -> str:
 		''' Return meta data as a string
 
-				return: str
-					the metadata as a string
+		If the note contains no metadata, return false.
+
+		return: str
+			the metadata as a string
 		'''
 		# if there is no metadata, return false.
 		if not self.post.metadata:
@@ -170,39 +188,42 @@ class Note():
 
 
 	def write(self, fileName: str | Path | None = None):
-		'''write note to a file
+		''' Write note to a file
 
 			Args:
-				filename: str | Path | None
-					the file path to dump the note. None overwrites the originating
-					file.
+			filename: str | Path | None
+				the file path to dump the note. None overwrites the originating
+				file.
 		'''
 		# convert string to path
 		if isinstance(fileName, str):
 			fileName = Path(fileName)
 		fn = self.path if fileName==None else fileName
-		# if metadata exists
+		# if metadata exists, use the frontmatter.dump method to create the file
 		if self.post.metadata:
 			frontmatter.dump(self.post, fn, encoding='utf-8', sort_keys=False, allow_unicode=True)
-		# If a document has no metadata, frontmatter.dump writes an empty 
+		# If a document has no metadata, frontmatter.dump would write an empty 
 		# metadata dict to the top of the document.
 		# This prevents Obsidian from recognizing '---' typed by the user 
 		# to trigger insertion of new properties. 
-		# So, if the metadata is empty, write only the content without the empty dict.
+		# So, if the metadata is empty, we write the content to the file directly, 
+		# without using frontmatter.dump
 		else:
 			with open(fn, 'w', encoding='utf-8') as f:
 				f.write("\n"+self.post.content)
 
 
-	def has_meta(self, key: str, value: None | str = None):
-		''' Return whether metadata key or key:value pair exists
+	def has_meta(self, key: str, value: None | str = None) -> bool:
+		''' Determine whether a metadata key or key:value pair exists
+
 			Args:
-				key: str
-					The metadata property key
-				value: str | None
-					The metadata value to match or None to match only the key
-			Return:
-				bool
+			key: str
+				The metadata property key
+			value: str | None
+				The metadata value to match or None to match only the key
+			
+			Return:	bool
+				Returns True if the key:value or key exists.
 
 		'''
 		pm = self.post.metadata
@@ -221,9 +242,9 @@ class Note():
 		''' Add metadata 
 
 		Args:
-			k string
+			k: str
 				a new or existing property key
-			v string, [], None. 
+			v: str | [] | None 
 				if string, the value to assign to a key
 				if [], initialize value with an empty list
 				if None, create a new property without assigning a value.
@@ -261,17 +282,21 @@ class Note():
 
 	def remove(self, k, v=None, remove_key=False):
 		''' Remove metadata
+		
+		If the value of an existing key is a list, the v will be removed from that list. 
+		Empty lists will be set to None. 
+
+		All other property types will be set to None. 
+
 		Args:
-			k string
+			k: str
 				an existing metadata key. 
-			v string | None
-				the value to remove. If None, the enire key will be
+			v: str | None
+				the value to remove. If None (default), the enire key will be
 				removed.
-			remove_key bool
+			remove_key: bool
 				if True, the entire key will be removed.
 
-		If the key value is a list, the value will be removed from that list. All other property types will be set to None
-		Empty lists will be set to None.
 		'''
 		pm = self.post.metadata
 		# remove key completely
@@ -292,13 +317,14 @@ class Note():
 
 	def search_content(self, search_string: str):
 		''' Search note content for a sub-string
+
 			Args:
-				search_string: str
-					the substring to search for in note content
-			Return:
-				False | list
-					False, if the search string is not found. 
-					Otherwise, a list of indexs where the search sting was found.
+			search_string: str
+				the substring to search for in note content
+			
+			Return:	False | list
+				False, if the search string is not found. 
+				A list of indexs where the search sting was found.
 		'''
 		positions = []
 		start = 0
