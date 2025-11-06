@@ -6,6 +6,11 @@ import frontmatter
 
 
 class Notes():
+	''' A collection of Note objects
+		paths: a path or list of paths where md files should be loaded
+		excludePaths: a path or list of folders that should be excluded
+		recursive: whether all sub folders of a path whould be processed.
+	'''
 	def __init__(self, paths, excludePaths=None, recursive=True):
 		self.recursive = recursive
 		self.paths = self._processPaths(paths)
@@ -94,6 +99,10 @@ class Note():
 
 	def __eq__(self, other):
 		return self.path == other.path
+
+
+	def __repr__(self):
+		return self.to_string()
 
 
 	@staticmethod
@@ -280,6 +289,29 @@ class Note():
 				else:
 					pm[k] = None
 
+
+	def search_content(self, search_string: str):
+		''' Search note content for a sub-string
+			Args:
+				search_string: str
+					the substring to search for in note content
+			Return:
+				False | list
+					False, if the search string is not found. 
+					Otherwise, a list of indexs where the search sting was found.
+		'''
+		positions = []
+		start = 0
+		while True:
+			start = self.post.content.find(search_string, start)
+			if start == -1:
+				break
+			positions.append(start)
+			start += len(search_string)
+		if len(positions) == 0:
+			return False
+		else:
+			return positions
 
 
 	def _sortDict(self, key, orderList, atTop):
