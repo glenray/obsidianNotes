@@ -207,7 +207,7 @@ class Note():
 		# This prevents Obsidian from recognizing '---' typed by the user 
 		# to trigger insertion of new properties. 
 		# So, if the metadata is empty, we write the content to the file directly, 
-		# without using frontmatter.dump
+		# without using frontmatter.dump. We start with a blank line to mimic frontmatter.dump.
 		else:
 			with open(fn, 'w', encoding='utf-8') as f:
 				f.write("\n"+self.post.content)
