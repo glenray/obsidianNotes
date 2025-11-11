@@ -57,7 +57,7 @@ class Notes():
 
 
 	def add_notes(self, paths, recursive = True):
-		''' Add a folder of notes to the Notes object
+		''' Add a note, or a folder of notes, to the Notes object
 
 		Append notes in a path or list of paths to the Notes object.
 
@@ -76,6 +76,7 @@ class Notes():
 					for f_name in files:
 						pth_f = Path(root) / f_name
 						if Note._is_md_file(pth_f) and not self._isExcluded(root):
+							# make the note from existing file
 							n = Note(pth_f, self.propTypes)
 							# do not allow duplicate notes
 							if n not in self.notes:
